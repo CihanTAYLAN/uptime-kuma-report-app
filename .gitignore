@@ -2,3 +2,5 @@ node_modules
 db.db
 package-lock.json
 .env
+kuma.db
+kuma.dba
