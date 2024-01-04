@@ -4,6 +4,12 @@
 
 Edit first .env file
 
+### Help Command
+
+```
+node ./index.js --help
+```
+
 ### Param defaults
 
 ```
