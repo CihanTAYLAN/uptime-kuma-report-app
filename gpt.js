@@ -49,7 +49,10 @@ function calculateAndSendReport() {
             from: 'cihan.taylan@technohouse.com.tr',
             to: 'cihantaylan@cihantaylan.com',
             subject: 'Haftalık Monitor Raporu',
-            text: emailContent
+            text: emailContent,
+            tls: {
+                rejectUnauthorized: false
+            }
         };
 
         transporter.sendMail(mailOptions, function (error, info) {
