@@ -1,8 +1,9 @@
 const sqlite3 = require('sqlite3').verbose();
 const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 // Veritabanı bağlantısını ayarla
-const db = new sqlite3.Database('./kuma.db', sqlite3.OPEN_READONLY, (err) => {
+const db = new sqlite3.Database(process.env.SQLITE_PATH, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
         console.error(err.message);
     }
