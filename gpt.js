@@ -10,16 +10,16 @@ const db = new sqlite3.Database(process.env.SQLITE_PATH, sqlite3.OPEN_READONLY, 
     console.log('Connected to the SQLite database.');
 });
 
-// // SMTP transporter'ı oluştur
-// const transporter = nodemailer.createTransport({
-//     host: 'mail.technohouse.com.tr',
-//     port: 587,
-//     secure: false,
-//     auth: {
-//         user: 'cihan.taylan@technohouse.com.tr',
-//         pass: '182419Ct'
-//     }
-// });
+// SMTP transporter'ı oluştur
+const transporter = nodemailer.createTransport({
+    host: 'mail.technohouse.com.tr',
+    port: 587,
+    secure: false,
+    auth: {
+        user: 'cihan.taylan@technohouse.com.tr',
+        pass: '182419Ct'
+    }
+});
 
 // Monitor başına haftalık success oranını hesapla ve e-posta gönder
 function calculateAndSendReport() {
@@ -45,20 +45,20 @@ function calculateAndSendReport() {
 
         console.log(emailContent);
         // E-postayı gönder
-        // const mailOptions = {
-        //     from: 'sender@example.com',
-        //     to: 'recipient@example.com',
-        //     subject: 'Haftalık Monitor Raporu',
-        //     text: emailContent
-        // };
+        const mailOptions = {
+            from: 'cihan.taylan@technohouse.com.tr',
+            to: 'cihantaylan@cihantaylan.com',
+            subject: 'Haftalık Monitor Raporu',
+            text: emailContent
+        };
 
-        // transporter.sendMail(mailOptions, function (error, info) {
-        //     if (error) {
-        //         console.log(error);
-        //     } else {
-        //         console.log('Email sent: ' + info.response);
-        //     }
-        // });
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
     });
 }
 
