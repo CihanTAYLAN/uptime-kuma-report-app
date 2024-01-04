@@ -14,3 +14,5 @@ db.all("SELECT * FROM monitor", function (err, rows) {
         console.log(row);
     });
 });
+
+// select mt.id,mt.url,hs.msg from monitor as mt inner join heartbeat as hs on mt.id = hs.monitor_id limit 3;
