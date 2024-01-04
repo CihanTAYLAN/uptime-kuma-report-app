@@ -33,8 +33,8 @@ const db = new sqlite3.Database(process.env.SQLITE_PATH, sqlite3.OPEN_READONLY, 
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT,
-    secure: process.env.SMTP_SECURE,
+    port: parseInt(process.env.SMTP_PORT),
+    secure: process.env.SMTP_SECURE == 'true',
     auth: {
         user: process.env.SMTP_USERNAME,
         pass: process.env.SMTP_PASSWORD
@@ -67,7 +67,7 @@ function calculateAndSendReport() {
         console.log(emailContent);
         // E-postayı gönder
         const mailOptions = {
-            from: 'cihan.taylan@technohouse.com.tr',
+            from: process.env.SMTP_USERNAME,
             to: mailTo,
             subject: 'Haftalık Monitor Raporu',
             text: emailContent,
