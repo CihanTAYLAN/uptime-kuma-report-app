@@ -27,7 +27,7 @@ const transporter = nodemailer.createTransport({
 // Monitor başına haftalık success oranını hesapla ve e-posta gönder
 function calculateAndSendReport() {
     const query = `
-    SELECT m.id, m.name,
+    SELECT m.id, m.url,
            AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) AS success_rate
     FROM heartbeat h
     JOIN monitor m ON m.id = h.monitor_id
@@ -43,7 +43,7 @@ function calculateAndSendReport() {
         // E-posta içeriğini oluştur
         let emailContent = 'Haftalık Monitor Başarı Oranları:\n\n';
         rows.forEach((row) => {
-            emailContent += `Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%\n`;
+            emailContent += `Monitor ID: ${row.id}, Url: ${row.url}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%\n`;
         });
 
         console.log(emailContent);
