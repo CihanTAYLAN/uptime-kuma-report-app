@@ -2,7 +2,28 @@ const sqlite3 = require('sqlite3').verbose();
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// Veritabanı bağlantısını ayarla
+
+let daysAgo = 7;
+let tag = 'Technohouse'
+let mailTo = 'alerts@technohouse.com.tr'
+
+for (const param of process.argv) {
+    if (param.includes('--days-ago=')) {
+        daysAgo = param.split('=')[1];
+    } else if (param.includes('--tag=')) {
+        tag = param.split('=')[1];
+    } else if (param.includes('--mail-to=')) {
+        mailTo = param.split('=')[1];
+    } else if (param.includes('--help')) {
+        console.log(`Param defaults ;`);
+        console.log(`--days-ago=${daysAgo}`);
+        console.log(`--tag=${tag}`);
+        console.log(`--mail-to=${mailTo}`);
+        console.log("Example usage : node test.js --days-ago=30 --tag=Inity --mail-to=cihan.taylan@technohouse.com.tr");
+        process.exit(0);
+    }
+}
+
 const db = new sqlite3.Database(process.env.SQLITE_PATH, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
         console.error(err.message);
@@ -10,28 +31,26 @@ const db = new sqlite3.Database(process.env.SQLITE_PATH, sqlite3.OPEN_READONLY, 
     console.log('Connected to the SQLite database.');
 });
 
-// SMTP transporter'ı oluştur
 const transporter = nodemailer.createTransport({
-    host: 'mail.technohouse.com.tr',
-    port: 587,
-    secure: false,
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: process.env.SMTP_SECURE,
     auth: {
-        user: 'cihan.taylan@technohouse.com.tr',
-        pass: '182419Ct'
+        user: process.env.SMTP_USERNAME,
+        pass: process.env.SMTP_PASSWORD
     },
     tls: {
         rejectUnauthorized: false
     }
 });
 
-// Monitor başına haftalık success oranını hesapla ve e-posta gönder
 function calculateAndSendReport() {
     const query = `
-    SELECT m.id, m.url,
+    SELECT m.id, m.name,
            AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) AS success_rate
     FROM heartbeat h
     JOIN monitor m ON m.id = h.monitor_id
-    WHERE h.time > datetime('now', '-7 days')
+    WHERE h.time > datetime('now', '-${daysAgo} days')
     GROUP BY m.id
   `;
 
@@ -40,17 +59,16 @@ function calculateAndSendReport() {
             throw err;
         }
 
-        // E-posta içeriğini oluştur
         let emailContent = 'Haftalık Monitor Başarı Oranları:\n\n';
         rows.forEach((row) => {
-            emailContent += `Monitor ID: ${row.id}, Url: ${row.url}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%\n`;
+            emailContent += `Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%\n`;
         });
 
         console.log(emailContent);
         // E-postayı gönder
         const mailOptions = {
             from: 'cihan.taylan@technohouse.com.tr',
-            to: 'cihantaylan@cihantaylan.com',
+            to: mailTo,
             subject: 'Haftalık Monitor Raporu',
             text: emailContent,
         };
@@ -67,7 +85,6 @@ function calculateAndSendReport() {
 
 calculateAndSendReport();
 
-// Veritabanı bağlantısını kapat
 db.close((err) => {
     if (err) {
         console.error(err.message);
