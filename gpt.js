@@ -18,6 +18,9 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: 'cihan.taylan@technohouse.com.tr',
         pass: '182419Ct'
+    },
+    tls: {
+        rejectUnauthorized: false
     }
 });
 
@@ -50,9 +53,6 @@ function calculateAndSendReport() {
             to: 'cihantaylan@cihantaylan.com',
             subject: 'Haftalık Monitor Raporu',
             text: emailContent,
-            tls: {
-                rejectUnauthorized: false
-            }
         };
 
         transporter.sendMail(mailOptions, function (error, info) {
