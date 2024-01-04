@@ -19,7 +19,7 @@ for (const param of process.argv) {
         console.log(`--days-ago=${daysAgo}`);
         console.log(`--tag=${tag}`);
         console.log(`--mail-to=${mailTo}`);
-        console.log("Example usage : npm run start --days-ago=30 --tag=Inity --mail-to=cihan.taylan@technohouse.com.tr");
+        console.log("Example usage : node ./index.js --days-ago=30 --tag=Inity --mail-to=cihan.taylan@technohouse.com.tr");
         process.exit(0);
     }
 }
