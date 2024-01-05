@@ -61,10 +61,10 @@ function calculateAndSendReport() {
 
         let emailContent = 'Haftalık Monitor Başarı Oranları:\n\n';
         rows.forEach((row) => {
-            emailContent += `Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%\n<br>`;
+            emailContent += `Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%<br>`;
+            console.log`Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%\n`;
         });
 
-        console.log(emailContent);
         // E-postayı gönder
         const mailOptions = {
             from: process.env.SMTP_USERNAME,
