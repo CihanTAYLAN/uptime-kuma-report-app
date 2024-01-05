@@ -59,7 +59,8 @@ function calculateAndSendReport() {
             throw err;
         }
 
-        let emailContent = 'Haftalık Monitor Başarı Oranları:\n\n';
+        let emailContent = `${daysAgo} Günlük Monitor Başarı Oranları:<br>`;
+        console.log(`${daysAgo} Günlük Monitor Başarı Oranları:\n`);
         rows.forEach((row) => {
             emailContent += `Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%<br>`;
             console.log(`Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%`);
