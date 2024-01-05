@@ -70,7 +70,7 @@ function calculateAndSendReport() {
             from: process.env.SMTP_USERNAME,
             to: mailTo,
             subject: 'Haftalık Monitor Raporu',
-            text: emailContent,
+            html: emailContent,
         };
 
         transporter.sendMail(mailOptions, function (error, info) {
