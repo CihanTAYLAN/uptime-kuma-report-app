@@ -95,11 +95,12 @@ function calculateAndSendReport() {
             </tr>`;
 
         rows.forEach((row) => {
+            console.log(row);
             emailContent += `
             <tr>
               <td>${row.id}</td>
               <td>${row.name}</td>
-              <td>${row.tag}</td>
+              <td>${row.tag_name}</td>
               <td>${row.success_rate.toFixed(2)}%</td>
             </tr>`;
         });
