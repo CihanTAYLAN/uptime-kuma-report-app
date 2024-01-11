@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 let daysAgo = 7;
-let tag = ''; // Default değer, komut satırı argümanıyla değiştirilebilir
+let tag = '';
 let mailTo = 'alerts@technohouse.com.tr';
 
 // Komut satırı argümanlarını işle
@@ -71,21 +71,21 @@ function calculateAndSendReport() {
         <html>
         <head>
           <style>
-            table {
+            .content table {
               width: 100%;
               border-collapse: collapse;
             }
-            th, td {
+            .content th, .content td {
               border: 1px solid #ddd;
               padding: 8px;
               text-align: left;
             }
-            th {
+            .content th {
               background-color: #f2f2f2;
             }
           </style>
         </head>
-        <body>
+        <body class=".content">
           <h2>${daysAgo} Günlük Monitor Başarı Oranları - ${tag}</h2>
           <table>
             <tr>
