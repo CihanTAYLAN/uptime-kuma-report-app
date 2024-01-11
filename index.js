@@ -52,11 +52,12 @@ function calculateAndSendReport() {
     const tagFilter = tag ? `AND m.name LIKE '%${tag}%'` : '';
 
     const query = `
-    SELECT m.id, m.name, h.status, h.time, h.ping, h.duration
+    SELECT m.id, m.name,
+           AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) * 100 AS success_rate
     FROM heartbeat h
     JOIN monitor m ON m.id = h.monitor_id
     WHERE h.time > datetime('now', '-${daysAgo} days') ${tagFilter}
-    GROUP BY m.id, h.status, h.time, h.ping, h.duration
+    GROUP BY m.id
   `;
 
     db.all(query, [], (err, rows) => {
@@ -89,22 +90,15 @@ function calculateAndSendReport() {
             <tr>
               <th>Monitor ID</th>
               <th>Adı</th>
-              <th>Status</th>
-              <th>Zaman Damgası</th>
-              <th>Ping</th>
-              <th>Duration</th>
+              <th>Başarı Oranı</th>
             </tr>`;
 
         rows.forEach((row) => {
-            const statusText = row.status === 1 ? 'Success' : 'Failed';
             emailContent += `
             <tr>
               <td>${row.id}</td>
               <td>${row.name}</td>
-              <td>${statusText}</td>
-              <td>${row.time}</td>
-              <td>${row.ping}</td>
-              <td>${row.duration}</td>
+              <td>${row.success_rate.toFixed(2)}%</td>
             </tr>`;
         });
 
@@ -130,10 +124,4 @@ function calculateAndSendReport() {
 
 calculateAndSendReport();
 
-// Veritabanı bağlantısını kapat
-db.close((err) => {
-    if (err) {
-        console.error(err.message);
-    }
-    console.log('Close the database connection.');
-});
+// Veritabanı bağlant
