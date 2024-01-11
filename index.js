@@ -59,12 +59,63 @@ function calculateAndSendReport() {
             throw err;
         }
 
-        let emailContent = `${daysAgo} Günlük Monitor Başarı Oranları:<br>`;
+        let emailContent = `
+<html>
+<head>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h2>${daysAgo} Günlük Monitor Başarı Oranları</h2>
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Status</th>
+      <th>Start Time</th>
+      <th>End Time</th>
+      <th>Size</th>
+      <th>Read</th>
+      <th>Transferred</th>
+      <th>Duration</th>
+    </tr>`;
+
+        // let emailContent = `${daysAgo} Günlük Monitor Başarı Oranları:<br>`;
         console.log(`${daysAgo} Günlük Monitor Başarı Oranları:\n`);
+        // rows.forEach((row) => {
+        //     emailContent += `Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%<br>`;
+        //     console.log(`Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%`);
+        // });
+
         rows.forEach((row) => {
-            emailContent += `Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%<br>`;
-            console.log(`Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%`);
+            emailContent += `
+              <tr>
+                <td>${row.name}</td>
+                <td>${row.status}</td>
+                <td>${row.start_time}</td>
+                <td>${row.end_time}</td>
+                <td>${row.size}</td>
+                <td>${row.read}</td>
+                <td>${row.transferred}</td>
+                <td>${row.duration}</td>
+              </tr>`;
         });
+
+        emailContent += `
+  </table>
+</body>
+</html>`;
 
         // E-postayı gönder
         const mailOptions = {
