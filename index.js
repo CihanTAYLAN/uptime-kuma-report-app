@@ -46,18 +46,16 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Raporu hesapla ve gönder
+
 function calculateAndSendReport() {
-    // Tag'e göre filtre ekle
-    const tagFilter = tag ? `WHERE m.name LIKE '%${tag}%'` : '';
+    const tagFilter = tag ? `AND m.tag = '${tag}'` : '';
 
     const query = `
-    SELECT m.id, m.name,
+    SELECT m.id, m.name, m.tag,
            AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) * 100 AS success_rate
     FROM heartbeat h
     JOIN monitor m ON m.id = h.monitor_id
-    ${tagFilter}
-    AND h.time > datetime('now', '-${daysAgo} days')
+    WHERE h.time > datetime('now', '-${daysAgo} days') ${tagFilter}
     GROUP BY m.id
   `;
 
@@ -71,26 +69,27 @@ function calculateAndSendReport() {
         <html>
         <head>
           <style>
-            .content table {
+            table {
               width: 100%;
               border-collapse: collapse;
             }
-            .content th, .content td {
+            th, td {
               border: 1px solid #ddd;
               padding: 8px;
               text-align: left;
             }
-            .content th {
+            th {
               background-color: #f2f2f2;
             }
           </style>
         </head>
-        <body class="content">
-          <h2>${daysAgo} Günlük Monitor Başarı Oranları - ${tag}</h2>
+        <body>
+          <h2>${daysAgo} Günlük Monitor Başarı Oranları - ${tag || "All"}</h2>
           <table>
             <tr>
               <th>Monitor ID</th>
               <th>Adı</th>
+              <th>Tag</th>
               <th>Başarı Oranı</th>
             </tr>`;
 
@@ -99,6 +98,7 @@ function calculateAndSendReport() {
             <tr>
               <td>${row.id}</td>
               <td>${row.name}</td>
+              <td>${row.tag || "N/A"}</td>
               <td>${row.success_rate.toFixed(2)}%</td>
             </tr>`;
         });
@@ -109,7 +109,7 @@ function calculateAndSendReport() {
         const mailOptions = {
             from: process.env.SMTP_USERNAME,
             to: mailTo,
-            subject: `${daysAgo} Günlük Monitor Raporu - ${tag}`,
+            subject: `${daysAgo} Günlük Monitor Raporu - ${tag || "All"}`,
             html: emailContent
         };
 
@@ -122,6 +122,7 @@ function calculateAndSendReport() {
         });
     });
 }
+
 
 calculateAndSendReport();
 
