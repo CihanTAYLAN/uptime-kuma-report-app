@@ -60,36 +60,33 @@ function calculateAndSendReport() {
         }
 
         let emailContent = `
-<html>
-<head>
-  <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-  </style>
-</head>
-<body>
-  <h2>${daysAgo} Günlük Monitor Başarı Oranları</h2>
-  <table>
-    <tr>
-      <th>Name</th>
-      <th>Status</th>
-      <th>Start Time</th>
-      <th>End Time</th>
-      <th>Size</th>
-      <th>Read</th>
-      <th>Transferred</th>
-      <th>Duration</th>
-    </tr>`;
+        <html>
+        <head>
+          <style>
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 8px;
+              text-align: left;
+            }
+            th {
+              background-color: #f2f2f2;
+            }
+          </style>
+        </head>
+        <body>
+          <h2>${daysAgo} Günlük Monitor Başarı Oranları</h2>
+          <table>
+            <tr>
+              <th>Monitor Adı</th>
+              <th>Status</th>
+              <th>Zaman Damgası</th>
+              <th>Ping</th>
+              <th>Duration</th>
+            </tr>`;
 
         // let emailContent = `${daysAgo} Günlük Monitor Başarı Oranları:<br>`;
         console.log(`${daysAgo} Günlük Monitor Başarı Oranları:\n`);
@@ -99,18 +96,18 @@ function calculateAndSendReport() {
         // });
 
         rows.forEach((row) => {
+            let statusText = row.status === 1 ? 'Success' : 'Failed';
+
             emailContent += `
-              <tr>
-                <td>${row.name}</td>
-                <td>${row.status}</td>
-                <td>${row.start_time}</td>
-                <td>${row.end_time}</td>
-                <td>${row.size}</td>
-                <td>${row.read}</td>
-                <td>${row.transferred}</td>
-                <td>${row.duration}</td>
-              </tr>`;
+      <tr>
+        <td>${row.monitor_name}</td>
+        <td>${statusText}</td>
+        <td>${row.time}</td>
+        <td>${row.ping}</td>
+        <td>${row.duration}</td>
+      </tr>`;
         });
+
 
         emailContent += `
   </table>
