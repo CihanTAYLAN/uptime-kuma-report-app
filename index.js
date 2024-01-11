@@ -97,7 +97,7 @@ function calculateAndSendReport() {
             </tr>`;
 
         rows.forEach((row) => {
-            const tags = row.tags.split(',').filter(onlyUnique).join(', ');
+            const tags = row?.tags?.split(',').filter(onlyUnique).join(', ');
             emailContent += `
             <tr>
               <td>${row.id}</td>
