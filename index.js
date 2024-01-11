@@ -48,16 +48,16 @@ const transporter = nodemailer.createTransport({
 
 
 function calculateAndSendReport() {
-    const tagFilter = tag ? `AND m.tag = '${tag}'` : '';
-
+    // monitor_tag tablosunu da JOIN ile dahil ederek tag bilgilerini al
     const query = `
-    SELECT m.id, m.name, m.tag,
+    SELECT m.id, m.name, mt.tag,
            AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) * 100 AS success_rate
     FROM heartbeat h
     JOIN monitor m ON m.id = h.monitor_id
-    WHERE h.time > datetime('now', '-${daysAgo} days') ${tagFilter}
+    JOIN monitor_tag mt ON m.id = mt.monitor_id
+    WHERE h.time > datetime('now', '-${daysAgo} days')
     GROUP BY m.id
-  `;
+    `;
 
     db.all(query, [], (err, rows) => {
         if (err) {
@@ -84,7 +84,7 @@ function calculateAndSendReport() {
           </style>
         </head>
         <body>
-          <h2>${daysAgo} Günlük Monitor Başarı Oranları - ${tag || "All"}</h2>
+          <h2>${daysAgo} Günlük Monitor Başarı Oranları</h2>
           <table>
             <tr>
               <th>Monitor ID</th>
@@ -98,7 +98,7 @@ function calculateAndSendReport() {
             <tr>
               <td>${row.id}</td>
               <td>${row.name}</td>
-              <td>${row.tag || "N/A"}</td>
+              <td>${row.tag}</td>
               <td>${row.success_rate.toFixed(2)}%</td>
             </tr>`;
         });
@@ -109,7 +109,7 @@ function calculateAndSendReport() {
         const mailOptions = {
             from: process.env.SMTP_USERNAME,
             to: mailTo,
-            subject: `${daysAgo} Günlük Monitor Raporu - ${tag || "All"}`,
+            subject: `${daysAgo} Günlük Monitor Raporu`,
             html: emailContent
         };
 
