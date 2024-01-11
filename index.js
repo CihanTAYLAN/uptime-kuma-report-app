@@ -24,7 +24,10 @@ for (const param of process.argv) {
     }
 }
 
-// Veritabanına bağlan
+function onlyUnique(value, index, array) {
+    return array.indexOf(value) === index;
+}
+
 const db = new sqlite3.Database(process.env.SQLITE_PATH, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
         console.error(err.message);
@@ -32,7 +35,6 @@ const db = new sqlite3.Database(process.env.SQLITE_PATH, sqlite3.OPEN_READONLY, 
     console.log('Connected to the SQLite database.');
 });
 
-// E-posta gönderici ayarlarını yap
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT),
@@ -95,12 +97,12 @@ function calculateAndSendReport() {
             </tr>`;
 
         rows.forEach((row) => {
-            console.log(row);
+            const tags = row.tags.split(',').filter(onlyUnique).join(', ');
             emailContent += `
             <tr>
               <td>${row.id}</td>
               <td>${row.name}</td>
-              <td>${row.tag_name}</td>
+              <td>${tags}</td>
               <td>${row.success_rate.toFixed(2)}%</td>
             </tr>`;
         });
