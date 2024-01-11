@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 let daysAgo = 7;
-let tag = 'Technohouse'; // Default değer, komut satırı argümanıyla değiştirilebilir
+let tag = ''; // Default değer, komut satırı argümanıyla değiştirilebilir
 let mailTo = 'alerts@technohouse.com.tr';
 
 // Komut satırı argümanlarını işle
@@ -49,14 +49,15 @@ const transporter = nodemailer.createTransport({
 // Raporu hesapla ve gönder
 function calculateAndSendReport() {
     // Tag'e göre filtre ekle
-    const tagFilter = tag ? `AND m.name LIKE '%${tag}%'` : '';
+    const tagFilter = tag ? `WHERE m.name LIKE '%${tag}%'` : '';
 
     const query = `
     SELECT m.id, m.name,
            AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) * 100 AS success_rate
     FROM heartbeat h
     JOIN monitor m ON m.id = h.monitor_id
-    WHERE h.time > datetime('now', '-${daysAgo} days') ${tagFilter}
+    ${tagFilter}
+    AND h.time > datetime('now', '-${daysAgo} days')
     GROUP BY m.id
   `;
 
@@ -85,7 +86,7 @@ function calculateAndSendReport() {
           </style>
         </head>
         <body>
-          <h2>${daysAgo} Günlük Monitor Başarı Oranları</h2>
+          <h2>${daysAgo} Günlük Monitor Başarı Oranları - ${tag}</h2>
           <table>
             <tr>
               <th>Monitor ID</th>
@@ -108,7 +109,7 @@ function calculateAndSendReport() {
         const mailOptions = {
             from: process.env.SMTP_USERNAME,
             to: mailTo,
-            subject: `${daysAgo} Günlük Monitor Raporu`,
+            subject: `${daysAgo} Günlük Monitor Raporu - ${tag}`,
             html: emailContent
         };
 
@@ -124,4 +125,9 @@ function calculateAndSendReport() {
 
 calculateAndSendReport();
 
-// Veritabanı bağlant
+db.close((err) => {
+    if (err) {
+        console.error(err.message);
+    }
+    console.log('Close the database connection.');
+});
