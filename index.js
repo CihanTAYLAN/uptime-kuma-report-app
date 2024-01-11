@@ -85,7 +85,7 @@ function calculateAndSendReport() {
             }
           </style>
         </head>
-        <body class=".content">
+        <body class="content">
           <h2>${daysAgo} Günlük Monitor Başarı Oranları - ${tag}</h2>
           <table>
             <tr>
