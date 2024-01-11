@@ -2,11 +2,11 @@ const sqlite3 = require('sqlite3').verbose();
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-
 let daysAgo = 7;
-let tag = 'Technohouse'
-let mailTo = 'alerts@technohouse.com.tr'
+let tag = 'Technohouse'; // Default değer, komut satırı argümanıyla değiştirilebilir
+let mailTo = 'alerts@technohouse.com.tr';
 
+// Komut satırı argümanlarını işle
 for (const param of process.argv) {
     if (param.includes('--days-ago=')) {
         daysAgo = param.split('=')[1];
@@ -24,6 +24,7 @@ for (const param of process.argv) {
     }
 }
 
+// Veritabanına bağlan
 const db = new sqlite3.Database(process.env.SQLITE_PATH, sqlite3.OPEN_READONLY, (err) => {
     if (err) {
         console.error(err.message);
@@ -31,10 +32,11 @@ const db = new sqlite3.Database(process.env.SQLITE_PATH, sqlite3.OPEN_READONLY, 
     console.log('Connected to the SQLite database.');
 });
 
+// E-posta gönderici ayarlarını yap
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT),
-    secure: process.env.SMTP_SECURE == 'true',
+    secure: process.env.SMTP_SECURE === 'true',
     auth: {
         user: process.env.SMTP_USERNAME,
         pass: process.env.SMTP_PASSWORD
@@ -44,14 +46,17 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Raporu hesapla ve gönder
 function calculateAndSendReport() {
+    // Tag'e göre filtre ekle
+    const tagFilter = tag ? `AND m.name LIKE '%${tag}%'` : '';
+
     const query = `
-    SELECT m.id, m.name,
-           AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) AS success_rate
+    SELECT m.id, m.name, h.status, h.time, h.ping, h.duration
     FROM heartbeat h
     JOIN monitor m ON m.id = h.monitor_id
-    WHERE h.time > datetime('now', '-${daysAgo} days')
-    GROUP BY m.id
+    WHERE h.time > datetime('now', '-${daysAgo} days') ${tagFilter}
+    GROUP BY m.id, h.status, h.time, h.ping, h.duration
   `;
 
     db.all(query, [], (err, rows) => {
@@ -59,6 +64,7 @@ function calculateAndSendReport() {
             throw err;
         }
 
+        // HTML e-posta şablonunu oluştur
         let emailContent = `
         <html>
         <head>
@@ -81,45 +87,35 @@ function calculateAndSendReport() {
           <h2>${daysAgo} Günlük Monitor Başarı Oranları</h2>
           <table>
             <tr>
-              <th>Monitor Adı</th>
+              <th>Monitor ID</th>
+              <th>Adı</th>
               <th>Status</th>
               <th>Zaman Damgası</th>
               <th>Ping</th>
               <th>Duration</th>
             </tr>`;
 
-        // let emailContent = `${daysAgo} Günlük Monitor Başarı Oranları:<br>`;
-        console.log(`${daysAgo} Günlük Monitor Başarı Oranları:\n`);
-        // rows.forEach((row) => {
-        //     emailContent += `Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%<br>`;
-        //     console.log(`Monitor ID: ${row.id}, Adı: ${row.name}, Başarı Oranı: ${(row.success_rate * 100).toFixed(2)}%`);
-        // });
-
         rows.forEach((row) => {
-            let statusText = row.status === 1 ? 'Success' : 'Failed';
-
+            const statusText = row.status === 1 ? 'Success' : 'Failed';
             emailContent += `
-      <tr>
-        <td>${row.monitor_name}</td>
-        <td>${statusText}</td>
-        <td>${row.time}</td>
-        <td>${row.ping}</td>
-        <td>${row.duration}</td>
-      </tr>`;
+            <tr>
+              <td>${row.id}</td>
+              <td>${row.name}</td>
+              <td>${statusText}</td>
+              <td>${row.time}</td>
+              <td>${row.ping}</td>
+              <td>${row.duration}</td>
+            </tr>`;
         });
 
-
-        emailContent += `
-  </table>
-</body>
-</html>`;
+        emailContent += `</table></body></html>`;
 
         // E-postayı gönder
         const mailOptions = {
             from: process.env.SMTP_USERNAME,
             to: mailTo,
-            subject: 'Haftalık Monitor Raporu',
-            html: emailContent,
+            subject: `${daysAgo} Günlük Monitor Raporu`,
+            html: emailContent
         };
 
         transporter.sendMail(mailOptions, function (error, info) {
@@ -134,6 +130,7 @@ function calculateAndSendReport() {
 
 calculateAndSendReport();
 
+// Veritabanı bağlantısını kapat
 db.close((err) => {
     if (err) {
         console.error(err.message);
