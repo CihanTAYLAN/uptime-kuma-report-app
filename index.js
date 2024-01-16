@@ -79,37 +79,36 @@ function calculateAndSendReport() {
                 <head>
                 <style>
                     table {
-                    width: 100%;
-                    border-collapse: collapse;
+                        width: 100%;
+                        border-collapse: collapse;
                     }
                     th, td {
-                    border: 1px solid #ddd;
-                    padding: 8px;
-                    text-align: left;
+                        padding: 8px;
+                        text-align: left;
                     }
                     th {
-                    background-color: #f2f2f2;
+                        background-color: #f2f2f2;
                     }
                 </style>
                 </head>
                 <body>
                 <h2>${daysAgo} Günlük Monitor Başarı Oranları</h2>
-                <table>
-                    <tr>
-                    <th>Monitor ID</th>
-                    <th>Adı</th>
-                    <th>Tag</th>
-                    <th>Başarı Oranı</th>
+                <table border="1">
+                    <tr border="1">
+                    <th border="1">Monitor ID</th>
+                    <th border="1">Adı</th>
+                    <th border="1">Tag</th>
+                    <th border="1">Başarı Oranı</th>
                     </tr>`;
 
             rows.forEach((row) => {
                 const tags = row?.tags?.split(',').filter(onlyUnique).join(', ');
                 emailContent += `
-                <tr>
-                <td>${row.id}</td>
-                <td>${row.name}</td>
-                <td>${tags}</td>
-                <td>${row.success_rate.toFixed(2)}%</td>
+                <tr border="1">
+                <td border="1">${row.id}</td>
+                <td border="1">${row.name}</td>
+                <td border="1">${tags}</td>
+                <td border="1">${row.success_rate.toFixed(2)}%</td>
                 </tr>`;
             });
 
