@@ -50,95 +50,100 @@ const transporter = nodemailer.createTransport({
 
 
 function calculateAndSendReport() {
-    // monitor_tag tablosunu da JOIN ile dahil ederek tag bilgilerini al
-    let query = `
-    SELECT m.id, m.name, GROUP_CONCAT(t.name) AS tags,
-    AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) * 100 AS success_rate
-    FROM monitor m
-    JOIN heartbeat h ON m.id = h.monitor_id
-    LEFT JOIN monitor_tag mt ON m.id = mt.monitor_id
-    LEFT JOIN tag t ON mt.tag_id = t.id
-    WHERE h.time > datetime('now', '-${daysAgo} days')
-    `;
+    return new Promise((resolve, reject) => {
+        let params = [daysAgo]; // Parametre listesi
+        let query = `
+            SELECT m.id, m.name, GROUP_CONCAT(t.name) AS tags,
+            AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) * 100 AS success_rate
+            FROM monitor m
+            JOIN heartbeat h ON m.id = h.monitor_id
+            LEFT JOIN monitor_tag mt ON m.id = mt.monitor_id
+            LEFT JOIN tag t ON mt.tag_id = t.id
+            WHERE h.time > datetime('now', ?)
+        `;
 
-    // Eğer bir tag belirtilmişse, sorguya ekleyin
-    if (tag) {
-        query += ` AND t.name = '${tag}'`;
-    }
-
-    query += ` GROUP BY m.id`;
-
-    db.all(query, [], (err, rows) => {
-        if (err) {
-            throw err;
+        if (tag) {
+            query += ` AND t.name = ?`;
+            params.push(tag);
         }
 
-        // HTML e-posta şablonunu oluştur
-        let emailContent = `
-        <html>
-        <head>
-          <style>
-            table {
-              width: 100%;
-              border-collapse: collapse;
-            }
-            th, td {
-              border: 1px solid #ddd;
-              padding: 8px;
-              text-align: left;
-            }
-            th {
-              background-color: #f2f2f2;
-            }
-          </style>
-        </head>
-        <body>
-          <h2>${daysAgo} Günlük Monitor Başarı Oranları</h2>
-          <table>
-            <tr>
-              <th>Monitor ID</th>
-              <th>Adı</th>
-              <th>Tag</th>
-              <th>Başarı Oranı</th>
-            </tr>`;
+        query += ` GROUP BY m.id`;
 
-        rows.forEach((row) => {
-            const tags = row?.tags?.split(',').filter(onlyUnique).join(', ');
-            emailContent += `
-            <tr>
-              <td>${row.id}</td>
-              <td>${row.name}</td>
-              <td>${tags}</td>
-              <td>${row.success_rate.toFixed(2)}%</td>
-            </tr>`;
-        });
-
-        emailContent += `</table></body></html>`;
-
-        // E-postayı gönder
-        const mailOptions = {
-            from: process.env.SMTP_USERNAME,
-            to: mailTo,
-            subject: `${daysAgo} Günlük Monitor Raporu`,
-            html: emailContent
-        };
-
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                console.log(error);
-            } else {
-                console.log('Email sent: ' + info.response);
+        db.all(query, params, (err, rows) => {
+            if (err) {
+                reject(err);
             }
+
+            let emailContent = `
+                <html>
+                <head>
+                <style>
+                    table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    }
+                    th, td {
+                    border: 1px solid #ddd;
+                    padding: 8px;
+                    text-align: left;
+                    }
+                    th {
+                    background-color: #f2f2f2;
+                    }
+                </style>
+                </head>
+                <body>
+                <h2>${daysAgo} Günlük Monitor Başarı Oranları</h2>
+                <table>
+                    <tr>
+                    <th>Monitor ID</th>
+                    <th>Adı</th>
+                    <th>Tag</th>
+                    <th>Başarı Oranı</th>
+                    </tr>`;
+
+            rows.forEach((row) => {
+                const tags = row?.tags?.split(',').filter(onlyUnique).join(', ');
+                emailContent += `
+                <tr>
+                <td>${row.id}</td>
+                <td>${row.name}</td>
+                <td>${tags}</td>
+                <td>${row.success_rate.toFixed(2)}%</td>
+                </tr>`;
+            });
+
+            emailContent += `</table></body></html>`;
+
+            const mailOptions = {
+                from: process.env.SMTP_USERNAME,
+                to: mailTo,
+                subject: `${daysAgo} Günlük Monitor Raporu`,
+                html: emailContent
+            };
+
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    console.log(error);
+                    reject(error);
+                } else {
+                    console.log('Email sent: ' + info.response);
+                    resolve();
+                }
+            });
         });
     });
 }
 
 
-calculateAndSendReport();
-
-db.close((err) => {
-    if (err) {
-        console.error(err.message);
-    }
-    console.log('Close the database connection.');
+calculateAndSendReport().then(() => {
+    db.close((err) => {
+        if (err) {
+            console.error(err.message);
+        }
+        console.log('Close the database connection.');
+    });
+}).catch((err) => {
+    console.error('An error occurred:', err);
+    db.close(); // Hata durumunda da veritabanı bağlantısını kapat
 });
