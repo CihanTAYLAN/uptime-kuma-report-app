@@ -51,7 +51,7 @@ const transporter = nodemailer.createTransport({
 
 function calculateAndSendReport() {
     // monitor_tag tablosunu da JOIN ile dahil ederek tag bilgilerini al
-    const query = `
+    let query = `
     SELECT m.id, m.name, GROUP_CONCAT(t.name) AS tags,
     AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) * 100 AS success_rate
     FROM monitor m
@@ -59,8 +59,14 @@ function calculateAndSendReport() {
     LEFT JOIN monitor_tag mt ON m.id = mt.monitor_id
     LEFT JOIN tag t ON mt.tag_id = t.id
     WHERE h.time > datetime('now', '-${daysAgo} days')
-    GROUP BY m.id
     `;
+
+    // Eğer bir tag belirtilmişse, sorguya ekleyin
+    if (tag) {
+        query += ` AND t.name = '${tag}'`;
+    }
+
+    query += ` GROUP BY m.id`;
 
     db.all(query, [], (err, rows) => {
         if (err) {
