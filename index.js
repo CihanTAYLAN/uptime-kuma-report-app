@@ -51,7 +51,7 @@ const transporter = nodemailer.createTransport({
 
 function calculateAndSendReport() {
     return new Promise((resolve, reject) => {
-        let params = [`${daysAgo} days`]; // Parametre listesi
+        let params = [`-${daysAgo} days`]; // Parametre listesi
         let query = `
             SELECT m.id, m.name, GROUP_CONCAT(t.name) AS tags,
             AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) * 100 AS success_rate
