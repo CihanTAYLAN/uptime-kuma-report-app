@@ -59,11 +59,11 @@ function calculateAndSendReport() {
             JOIN heartbeat h ON m.id = h.monitor_id
             LEFT JOIN monitor_tag mt ON m.id = mt.monitor_id
             LEFT JOIN tag t ON mt.tag_id = t.id
-            WHERE h.time > datetime('now', ?)
+            WHERE h.time > datetime('now', '? days')
         `;
 
         if (tag) {
-            query += ` AND t.name = ?`;
+            query += ` AND t.name = '?'`;
             params.push(tag);
         }
 
