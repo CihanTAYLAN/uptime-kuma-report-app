@@ -51,7 +51,7 @@ const transporter = nodemailer.createTransport({
 
 function calculateAndSendReport() {
     return new Promise((resolve, reject) => {
-        let params = [daysAgo]; // Parametre listesi
+        let params = [`${daysAgo} days`]; // Parametre listesi
         let query = `
             SELECT m.id, m.name, GROUP_CONCAT(t.name) AS tags,
             AVG(CASE WHEN h.status = 1 THEN 1 ELSE 0 END) * 100 AS success_rate
@@ -59,11 +59,11 @@ function calculateAndSendReport() {
             JOIN heartbeat h ON m.id = h.monitor_id
             LEFT JOIN monitor_tag mt ON m.id = mt.monitor_id
             LEFT JOIN tag t ON mt.tag_id = t.id
-            WHERE h.time > datetime('now', '? days')
+            WHERE h.time > datetime('now', ?)
         `;
 
         if (tag) {
-            query += ` AND t.name = '?'`;
+            query += ` AND t.name = ?`;
             params.push(tag);
         }
 
