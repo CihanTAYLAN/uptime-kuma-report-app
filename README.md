@@ -21,5 +21,5 @@ node ./index.js --help
 ### Example usage;
 
 ```
-node ./index.js --days-ago=30 --tag=Inity --mail-to=cihan.taylan@technohouse.com.tr
+node ./index.js --days-ago=30 --tag=yourTag --mail-to=mail@to.ex
 ```
